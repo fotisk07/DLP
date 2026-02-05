@@ -1,15 +1,15 @@
 [project]
-name = "dlp"
+name = "week3"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "matplotlib>=3.9.4",
-    "pandas>=2.3.3",
-    "requests>=2.32.5",
+    "numpy>=2.0.2",
+    "scikit-learn>=1.6.1",
     "torch>=2.8.0",
-    "torchvision>=0.23.0",
+    "torch-geometric>=2.6.1",
 ]
 
 [dependency-groups]
