@@ -1,26 +1,60 @@
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-
-
 # Define model ( in your class_model_gnn.py)
+import torch
+import torch.nn.functional as F
+import torch_geometric.nn as graphnn
+from torch import nn
+
+
 class StudentModel(nn.Module):
     def __init__(self):
-        super(StudentModel, self).__init__()
-        self.conv1 = nn.Conv2d(3, 6, 5)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * 5 * 5, 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10)
+        super().__init__()
 
-    def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(-1, 16 * 5 * 5)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
+        in_dim = 50
+        out_dim = 121
+
+        hidden = 64
+        heads1 = 8
+        heads2 = 8
+        p = 0.2
+
+        self.p = p
+
+        # GAT blocks
+        self.gat1 = graphnn.GATConv(in_dim, hidden, heads=heads1, concat=True, dropout=p)
+        self.norm1 = nn.LayerNorm(hidden * heads1)
+        self.res1 = nn.Linear(in_dim, hidden * heads1, bias=False)
+
+        self.gat2 = graphnn.GATConv(hidden * heads1, hidden, heads=heads2, concat=True, dropout=p)
+        self.norm2 = nn.LayerNorm(hidden * heads2)
+        self.res2 = nn.Linear(hidden * heads1, hidden * heads2, bias=False)
+
+        # Output layer (no concat => directly out_dim)
+        self.gat3 = graphnn.GATConv(hidden * heads2, out_dim, heads=1, concat=False, dropout=p)
+        self.res3 = nn.Linear(hidden * heads2, out_dim, bias=False)
+
+    def forward(self, x, edge_index):
+        # Block 1
+        x_in = x
+        x = F.dropout(x, p=self.p, training=self.training)
+        x = self.gat1(x, edge_index)
+        x = x + self.res1(x_in)
+        x = self.norm1(x)
+        x = F.elu(x)
+
+        # Block 2
+        x_in = x
+        x = F.dropout(x, p=self.p, training=self.training)
+        x = self.gat2(x, edge_index)
+        x = x + self.res2(x_in)
+        x = self.norm2(x)
+        x = F.elu(x)
+
+        # Output
+        x_in = x
+        x = F.dropout(x, p=self.p, training=self.training)
+        x = self.gat3(x, edge_index)
+        x = x + self.res3(x_in)
+
         return x
 
 
