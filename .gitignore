@@ -13,3 +13,5 @@ USPS
 *.zip
 *.pt
 Week3/raw
+data
+*.png
