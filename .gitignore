@@ -17,3 +17,6 @@ USPS
 Week3/raw
 data
 *.png
+*.log
+
+slurm*

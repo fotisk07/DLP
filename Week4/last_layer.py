@@ -7,13 +7,9 @@ class LastLayer(nn.Module):
         super(LastLayer, self).__init__()
         self.out_features = 2
         self.fc = nn.Sequential(OrderedDict([
-            ('fc_Linear1', nn.Linear(512, 8)),
+            ('fc_Linear1', nn.Linear(512, 64)),
             ('activation', nn.ReLU()),
-            ('fc_Linear2', nn.Linear(8, 2))
-        ]))
-        
-        self.fc = nn.Sequential(OrderedDict([
-            ('fc_Linear1', nn.Linear(512, 8))
+            ('fc_Linear2', nn.Linear(64, self.out_features))
         ]))
         
     def forward(self, x):
